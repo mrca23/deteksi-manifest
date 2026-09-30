@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deteksi Manifest</title>
+<meta name="description" content="Baca nomor bagging dari foto manifest. Gambar diperjelas dulu, lalu dibaca di browser. Nomor yang tidak jelas tidak dimasukkan.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23c00000'/><path d='M9 7h14v18H9z' fill='none' stroke='white' stroke-width='2.2'/><path d='M12 12h8M12 16h8M12 20h5' stroke='white' stroke-width='2.2'/></svg>">
+<style>
+  :root {
+    --bg: #f6f6f4; --card: #ffffff; --text: #1d1d1b; --muted: #6b6b66; --line: #e2e1dc; --soft: #f0efeb;
+    --accent: #c00000; --accent-soft: #fbeaea; --on-accent: #ffffff; --ok: #1f7a3a; --ok-soft: #e4f3e8;
+    --warn: #9a6400; --warn-soft: #fff4d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #151514; --card: #1f1f1d; --text: #ecebe6; --muted: #a09f98; --line: #34332f; --soft: #262624;
+      --accent: #ff6b6b; --accent-soft: #3a2121; --on-accent: #1a0d0d; --ok: #6fcf8d; --ok-soft: #1e3326;
+      --warn: #f0c060; --warn-soft: #3a3220;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 28px 16px 48px; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h2 { font-size: 17px; margin: 0; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .drop { position: relative; display: block; border: 2px dashed var(--line); border-radius: 10px; padding: 28px 16px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
+  .drop:hover, .drop.aktif { border-color: var(--accent); background: var(--accent-soft); }
+  .drop strong { display: block; font-size: 16px; margin-bottom: 4px; }
+  .drop span { color: var(--muted); font-size: 14px; }
+  .drop input[type=file] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 0; }
+  .drop .pilih { display: inline-block; margin-top: 14px; background: var(--accent); color: var(--on-accent); font-weight: 600; border-radius: 8px; padding: 9px 18px; }
+  .drop:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .privasi { font-size: 13px; color: var(--muted); margin: 12px 0 0; }
+  .status { margin: 14px 0 0; font-size: 14px; min-height: 21px; }
+  .status.error { color: var(--accent); }
+  .status.ok { color: var(--ok); }
+  .bar { height: 6px; background: var(--soft); border-radius: 99px; overflow: hidden; margin-top: 8px; }
+  .bar div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+  button { font: inherit; font-weight: 600; background: var(--accent); color: var(--on-accent); border: 0; border-radius: 8px; padding: 9px 16px; cursor: pointer; }
+  button.sek { background: transparent; color: var(--text); border: 1px solid var(--line); font-weight: 500; }
+  button.sek.aktif { background: var(--text); color: var(--bg); border-color: var(--text); }
+  button:disabled { opacity: .45; cursor: default; }
+  .baris { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .aksi { display: flex; flex-wrap: wrap; gap: 8px; }
+  .gambar { background: var(--soft); border-radius: 10px; overflow: auto; max-height: 640px; text-align: center; }
+  .gambar canvas { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+  .ringkas { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .ringkas div { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .ringkas .ok { background: var(--ok-soft); border-color: transparent; }
+  .ringkas .warn { background: var(--warn-soft); border-color: transparent; }
+  .ringkas small { display: block; color: var(--muted); font-size: 12px; }
+  .ringkas strong { font-size: 22px; font-variant-numeric: tabular-nums; }
+  .tabel { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.mono { font: 600 15px ui-monospace, Consolas, monospace; white-space: nowrap; }
+  td img { display: block; height: 30px; max-width: 280px; border-radius: 4px; border: 1px solid var(--line); background: #fff; }
+  .alasan { color: var(--warn); font-size: 13px; }
+  .info { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+  .tersembunyi { display: none !important; }
+  ol.langkah { margin: 8px 0 0; padding-left: 20px; color: var(--muted); font-size: 14px; }
+  details summary { cursor: pointer; }
+  label.cek { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Deteksi Manifest</h1>
+  <p class="sub">Foto manifest diperjelas dulu, lalu nomor bagging dibaca otomatis. Nomor yang tidak jelas <b>tidak dimasukkan</b>.</p>
+
+  <section class="card">
+    <label class="drop" id="drop">
+      <strong>Tarik foto manifest ke sini</strong>
+      <span>.jpg / .png / .webp - foto tegak, seluruh kolom BAGGING kelihatan</span><br>
+      <span class="pilih">Pilih Foto</span>
+      <input type="file" id="file" accept="image/*">
+    </label>
+    <p class="privasi">Foto diolah langsung di browser Anda (Tesseract.js). Foto tidak di-upload ke server.</p>
+    <p class="status" id="status" role="status"></p>
+    <div class="bar tersembunyi" id="bar"><div></div></div>
+  </section>
+
+  <section class="card tersembunyi" id="hasilBox">
+    <div class="baris"><h2>Hasil baca nomor bagging</h2>
+      <div class="aksi">
+        <button id="btnSalin">Salin nomor</button>
+        <button class="sek" id="btnTxt">Unduh .txt</button>
+      </div>
+    </div>
+    <div class="ringkas" id="ringkas"></div>
+    <div class="tabel"><table id="tabelOk"></table></div>
+    <div id="tidakBox" class="tersembunyi">
+      <h2 style="margin:20px 0 6px">Tidak dimasukkan (tidak jelas)</h2>
+      <p class="info" style="margin:0 0 8px">Terbaca mirip nomor bagging tapi tidak lolos pemeriksaan. Cek manual dari potongan gambar.</p>
+      <div class="tabel"><table id="tabelTidak"></table></div>
+    </div>
+  </section>
+
+  <section class="card tersembunyi" id="gambarBox">
+    <div class="baris"><h2>Gambar</h2>
+      <div class="aksi">
+        <button class="sek" data-lihat="asli">Asli</button>
+        <button class="sek aktif" data-lihat="jelas">Diperjelas</button>
+      </div>
+    </div>
+    <div class="gambar" id="gambar"></div>
+    <p class="info">Kotak hijau = nomor bagging dimasukkan, kotak kuning = tidak jelas / tidak dimasukkan.</p>
+  </section>
+
+  <section class="card">
+    <h2>Cara pakai</h2>
+    <ol class="langkah">
+      <li>Foto manifest dari atas, tegak, terang, tidak blur. Seluruh kolom BAGGING harus masuk foto.</li>
+      <li>Upload foto. Web memperjelas gambar (hilangkan bayangan, naikkan kontras, pertajam), lalu membaca teksnya.</li>
+      <li>Hanya nomor bagging yang diambil. Nomor yang tidak jelas tidak dimasukkan dan ditampilkan terpisah untuk dicek manual.</li>
+    </ol>
+    <details class="info" style="margin-top:10px">
+      <summary>Kapan nomor dianggap tidak jelas?</summary>
+      <ul>
+        <li>Format tidak lengkap: harus <b>LY + 12 angka</b> (contoh LY000020500897).</li>
+        <li>Keyakinan baca di bawah <span id="batasTxt"></span>%.</li>
+        <li>Gambar dibaca 4 kali (abu-abu &amp; hitam-putih, 2 mode tata letak). Kalau di posisi yang sama hasilnya berbeda, nomor tidak dimasukkan.</li>
+      </ul>
+    </details>
+  </section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script src="app.js?v=2"></script>
+</body>
+</html>
