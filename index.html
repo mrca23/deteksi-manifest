@@ -62,6 +62,13 @@
   td img { display: block; height: 30px; max-width: 280px; border-radius: 4px; border: 1px solid var(--line); background: #fff; }
   .alasan { color: var(--warn); font-size: 13px; }
   .info { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+  .list-bagging { list-style: none; margin: 0; padding: 0; columns: 3 250px; column-gap: 12px; counter-reset: bag; }
+  .list-bagging li { break-inside: avoid; display: flex; gap: 10px; align-items: baseline; padding: 7px 10px; border-bottom: 1px solid var(--line); font: 600 15px ui-monospace, Consolas, monospace; counter-increment: bag; }
+  .list-bagging li::before { content: counter(bag); min-width: 26px; text-align: right; color: var(--muted); font: 500 13px system-ui, sans-serif; }
+  .list-bagging li small { font: 500 12px system-ui, sans-serif; color: var(--warn); }
+  .list-bagging:empty { display: none; }
+  details.detail { margin-top: 14px; }
+  details.detail summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-bottom: 8px; }
   .tersembunyi { display: none !important; }
   ol.langkah { margin: 8px 0 0; padding-left: 20px; color: var(--muted); font-size: 14px; }
   details summary { cursor: pointer; }
@@ -86,14 +93,18 @@
   </section>
 
   <section class="card tersembunyi" id="hasilBox">
-    <div class="baris"><h2>Hasil baca nomor bagging</h2>
+    <div class="baris"><h2>List Bagging <span id="jmlList"></span></h2>
       <div class="aksi">
         <button id="btnSalin">Salin nomor</button>
         <button class="sek" id="btnTxt">Unduh .txt</button>
       </div>
     </div>
     <div class="ringkas" id="ringkas"></div>
-    <div class="tabel"><table id="tabelOk"></table></div>
+    <ol class="list-bagging" id="listBagging"></ol>
+    <details class="detail">
+      <summary>Detail pembacaan (keyakinan &amp; potongan gambar)</summary>
+      <div class="tabel"><table id="tabelOk"></table></div>
+    </details>
     <div id="tidakBox" class="tersembunyi">
       <h2 style="margin:20px 0 6px">Tidak dimasukkan (tidak jelas)</h2>
       <p class="info" style="margin:0 0 8px">Terbaca mirip nomor bagging tapi tidak lolos pemeriksaan. Cek manual dari potongan gambar.</p>
@@ -130,6 +141,6 @@
   </section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>

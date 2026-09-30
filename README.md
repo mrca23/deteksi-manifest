@@ -7,7 +7,7 @@ Step 1: baca **nomor bagging** dari foto manifest (contoh: MANIFEST PULAU TTE999
 ## Cara pakai
 1. Foto manifest dari atas, tegak, terang, tidak blur. Seluruh kolom BAGGING masuk foto.
 2. Upload foto. Tunggu +-20-40 detik (pertama kali ada unduhan pembaca teks +-5 MB).
-3. Hasil: daftar nomor bagging urut sesuai baris manifest + potongan gambar tiap nomor. Klik **Salin nomor** / **Unduh .txt**.
+3. Hasil: **List Bagging** (nomor urut + nomor bagging, sesuai baris manifest). Keyakinan & potongan gambar ada di "Detail pembacaan". Klik **Salin nomor** / **Unduh .txt**.
 4. Bagian **Tidak dimasukkan** berisi yang terbaca mirip nomor bagging tapi tidak lolos: cek manual.
 
 ## Proses

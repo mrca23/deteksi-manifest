@@ -321,6 +321,10 @@
       '<div class="' + (h.tidak.length ? 'warn' : '') + '"><small>Tidak jelas (tidak dimasukkan)</small><strong>' + h.tidak.length + '</strong></div>' +
       '<div><small>Waktu baca</small><strong>' + h.detik + ' dtk</strong></div>' +
       '<div><small>Foto diluruskan</small><strong>' + (h.sudut ? String(Math.abs(h.sudut)).replace('.', ',') + '°' : '-') + '</strong></div>';
+    $('jmlList').textContent = '(' + h.ok.length + ')';
+    $('listBagging').innerHTML = h.ok.map(function (r) {
+      return '<li>' + r.nomor + (r.dobel ? ' <small>tertulis 2x</small>' : '') + '</li>';
+    }).join('');
     $('tabelOk').innerHTML = '<thead><tr><th class="num">No</th><th>No. Bagging</th><th class="num">Yakin</th><th>Potongan gambar</th></tr></thead><tbody>' +
       (h.ok.length ? h.ok.map(function (r, i) {
         return '<tr><td class="num">' + (i + 1) + '</td><td class="mono">' + r.nomor + (r.dobel ? ' <small class="alasan">(tertulis 2x)</small>' : '') +
